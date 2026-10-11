@@ -21,5 +21,5 @@ variable "container_app_name" {
 
 variable "image_tag" {
   type    = string
-  default = "latest"
+  default = "f636ea9"
 }

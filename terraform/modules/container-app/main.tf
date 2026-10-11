@@ -13,6 +13,18 @@ resource "azurerm_container_app_environment" "this" {
   log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
 }
 
+resource "azurerm_user_assigned_identity" "acr_pull" {
+  name                = "id-${var.container_app_name}-acrpull"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+}
+
+resource "azurerm_role_assignment" "acr_pull" {
+  scope                = var.acr_id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_user_assigned_identity.acr_pull.principal_id
+}
+
 resource "azurerm_container_app" "this" {
   name                         = var.container_app_name
   resource_group_name          = var.resource_group_name
@@ -20,7 +32,8 @@ resource "azurerm_container_app" "this" {
   revision_mode                = "Single"
 
   identity {
-    type = "SystemAssigned"
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.acr_pull.id]
   }
 
   template {
@@ -34,23 +47,19 @@ resource "azurerm_container_app" "this" {
 
   ingress {
     external_enabled = true
-    target_port      = 80
-    transport        = "auto"
+    target_port       = 80
+    transport         = "auto"
 
     traffic_weight {
       latest_revision = true
-      percentage      = 100
+      percentage       = 100
     }
   }
 
   registry {
     server   = var.acr_login_server
-    identity = "System"
+    identity = azurerm_user_assigned_identity.acr_pull.id
   }
-}
 
-resource "azurerm_role_assignment" "acr_pull" {
-  scope                = var.acr_id
-  role_definition_name = "AcrPull"
-  principal_id         = azurerm_container_app.this.identity[0].principal_id
+  depends_on = [azurerm_role_assignment.acr_pull]
 }
