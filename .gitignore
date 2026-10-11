@@ -1,1 +1,4 @@
 azure-notes.md
+.terraform/
+*.tfstate
+*.tfstate.*
