@@ -1,4 +1,4 @@
-name: Terraform Destroy
+name: Destroy
 
 on:
   workflow_dispatch:
@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 jobs:
-  terraform-destroy:
+  destroy:
     runs-on: ubuntu-latest
     environment: azure-destroy
     if: github.event.inputs.confirm == 'destroy'

@@ -1,4 +1,4 @@
-name: Terraform Apply
+name: Apply
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  terraform:
+  apply:
     runs-on: ubuntu-latest
     environment: azure-infra
     defaults:
