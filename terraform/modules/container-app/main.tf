@@ -1,4 +1,4 @@
-resource "azurerm_log_analytics_workspace" "this" {
+resource "azurerm_log_analytics_workspace" "logs" {
   name                = "law-${var.container_app_name}"
   location            = var.location
   resource_group_name = var.resource_group_name
@@ -6,11 +6,11 @@ resource "azurerm_log_analytics_workspace" "this" {
   retention_in_days   = 30
 }
 
-resource "azurerm_container_app_environment" "this" {
+resource "azurerm_container_app_environment" "environment" {
   name                       = "cae-${var.container_app_name}"
   location                   = var.location
   resource_group_name        = var.resource_group_name
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.logs.id
 }
 
 resource "azurerm_user_assigned_identity" "acr_pull" {
@@ -25,11 +25,12 @@ resource "azurerm_role_assignment" "acr_pull" {
   principal_id         = azurerm_user_assigned_identity.acr_pull.principal_id
 }
 
-resource "azurerm_container_app" "this" {
+resource "azurerm_container_app" "app" {
   name                         = var.container_app_name
   resource_group_name          = var.resource_group_name
-  container_app_environment_id = azurerm_container_app_environment.this.id
+  container_app_environment_id = azurerm_container_app_environment.environment.id
   revision_mode                = "Single"
+  workload_profile_name        = "Consumption"
 
   identity {
     type         = "UserAssigned"
@@ -59,6 +60,10 @@ resource "azurerm_container_app" "this" {
   registry {
     server   = var.acr_login_server
     identity = azurerm_user_assigned_identity.acr_pull.id
+  }
+
+  lifecycle {
+    ignore_changes = [template[0].container[0].image]
   }
 
   depends_on = [azurerm_role_assignment.acr_pull]

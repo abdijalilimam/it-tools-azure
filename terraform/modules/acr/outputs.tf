@@ -1,2 +1,6 @@
-output "id" { value = azurerm_container_registry.this.id }
-output "login_server" { value = azurerm_container_registry.this.login_server }
+output "id" { 
+value = azurerm_container_registry.registry.id 
+}
+output "login_server" { 
+value = azurerm_container_registry.registry.login_server 
+}
