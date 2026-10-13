@@ -28,6 +28,7 @@ jobs:
         run: |
           az acr build \
             --registry ittoolsazure \
+            --resource-group rg-it-tools-azure \
             --image it-tools:${{ github.sha }} \
             .
 
