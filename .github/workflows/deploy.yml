@@ -34,7 +34,11 @@ jobs:
 
       - name: Deploy to Container Apps
         run: |
-          az containerapp update \
-            --name it-tools \
-            --resource-group rg-it-tools-azure \
-            --image ittoolsazure.azurecr.io/it-tools:${{ github.sha }}
+          URL="https://management.azure.com/subscriptions/febfd4c7-ff50-4eb7-965f-05306b56dfa3/resourceGroups/rg-it-tools-azure/providers/Microsoft.App/containerApps/it-tools?api-version=2023-05-01"
+
+          az rest --method get --url "$URL" > current.json
+
+          jq --arg image "ittoolsazure.azurecr.io/it-tools:${{ github.sha }}" \
+            '.properties.template.containers[0].image = $image' current.json > updated.json
+
+          az rest --method put --url "$URL" --body @updated.json
