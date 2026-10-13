@@ -9,7 +9,7 @@ terraform {
   }
 
   backend "azurerm" {
-    resource_group_name  = "rg-it-tools-azure"
+    resource_group_name  = "rg-terraform-state"
     storage_account_name = "stittoolstfstate29134"
     container_name       = "tfstate"
     key                  = "it-tools-azure.tfstate"
