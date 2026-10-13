@@ -13,6 +13,7 @@ terraform {
     storage_account_name = "stittoolstfstate29134"
     container_name       = "tfstate"
     key                  = "it-tools-azure.tfstate"
+    use_azuread_auth     = true
   }
 }
 
