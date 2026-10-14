@@ -40,7 +40,7 @@ resource "azurerm_container_app" "app" {
   template {
     container {
       name   = var.container_app_name
-      image  = "${var.acr_login_server}/${var.container_app_name}:${var.image_tag}"
+      image  = "mcr.microsoft.com/azuredocs/containerapps-helloworld@sha256:e9b3e7c34664c7cffd7144864b0e4eec369bfde80068f9095dc63b37058bec48"      
       cpu    = 0.5
       memory = "1Gi"
     }
