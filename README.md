@@ -64,6 +64,12 @@ Three independent GitHub Actions workflows, each authenticating via its own OIDC
 
 No workflow stores a client secret, access key, or connection string. Every one exchanges a short-lived GitHub-issued OIDC token for an Azure AD token at run time.
 
+## Pipeline runs
+
+![Build pipeline](docs/build-pipeline.png)
+![Apply pipeline](docs/apply-pipeline.png)
+![Destroy pipeline](docs/destroy-pipeline.png)
+
 ## Identity & access design
 
 The GitHub Actions identity and the app's runtime identity are deliberately separate and scoped differently:
