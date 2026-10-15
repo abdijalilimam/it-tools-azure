@@ -44,7 +44,7 @@ DNS (external): azure.abdijalil.dev → CNAME + TXT records →
 
 | Resource | Name | Purpose |
 |---|---|---|
-| Resource Group | `rg-it-tools-azure` | Holds all app infrastructure — fully managed (created and destroyed) by Terraform |
+| Resource Group | `rg-it-tools-azure` | Holds all app infrastructure. Created once via `bootstrap/`, looked up (not managed) by Terraform — Apply/Destroy create and destroy everything *inside* it, never the group itself |
 | Resource Group | `rg-terraform-state` | Holds the Terraform backend only; created once via `bootstrap/`, never touched by Apply/Destroy |
 | Storage Account | `stittoolstfstate*` | Terraform remote state, blob container `tfstate`, Azure AD auth (no account keys) |
 | Container Registry | `ittoolsazure` | Stores built container images |
@@ -97,12 +97,16 @@ bootstrap/
 │                    # both resource groups, the state storage account,
 │                    # the app registration, its federated credentials,
 │                    # and the CI/CD identity's role assignments.
+├── repair-roles.sh  # re-grants the CI/CD identity's role assignments
+│                    # if they're ever lost out-of-band. Not part of
+│                    # normal operation — see "Design notes" below.
 └── README.md
 ```
 
 ## Design notes worth knowing
 
 - **The Container App's image is intentionally not fully Terraform-owned.** Terraform sets the initial image on creation, then `lifecycle { ignore_changes }` lets Build's direct REST API update take over day-to-day deploys — so a new image doesn't require a full `terraform apply` on every push.
-- **Terraform state lives in its own resource group**, separate from the app's. Destroy tears down `rg-it-tools-azure` completely on every run; keeping state outside it means a full teardown never breaks Terraform's own backend access or the CI/CD identity's remaining permissions.
+- **`rg-it-tools-azure` is created once by `bootstrap/` and never destroyed.** Terraform looks it up with a `data` source rather than managing it as a resource, so Destroy only removes what's *inside* the group — the ACR, Container Apps environment, Container App, managed identity, Log Analytics workspace — and leaves the (now empty) group standing. A role assignment is a child of the scope it's attached to, so the CI/CD identity's roles, being scoped to this group, survive every Destroy along with it: no re-running `bootstrap/`, no `terraform import`, no manual re-grant before the next Apply.
+- **Terraform state lives in its own resource group**, separate from the app's, for the same reason: Terraform's own backend access shouldn't live inside the thing Terraform tears down and rebuilds.
 - **Container Apps' built-in ingress and managed certificate replace what would otherwise be a separate load balancer, public IP, and certificate resource** — one managed resource instead of several.
 - **The storage account backend uses Azure AD auth, not a shared access key** — consistent with the OIDC-first, no-stored-secrets approach used everywhere else in this project.
